@@ -2,14 +2,11 @@
 
 SevSeg sevseg; // Instantiate a seven segment controller object
 const int BUFFER_SIZE = 32;
-void write(char *buf, int len);
+void write(char *buf, int len, int start);
 
 void setup()
 {
     byte numDigits = 4;
-
-    // byte digitPins[] = {4, 7, 8, 10};
-    // byte segmentPins[] = {5,   9, 14, A0, A1,  6, 16, 15};
 
     byte digitPins[] = {10, 15, A0, 4};
     byte segmentPins[] = {16, A1, 6, 8, 9, 14, 5, 7};
@@ -29,32 +26,44 @@ void setup()
 void loop()
 {
     static char buffer[BUFFER_SIZE];
-    static int display_len = 0;
-    static int slice = 0;
+    static int read_len = 0;
+    static int start = 0;
+    static int start_time = millis();
 
     if (Serial.available()) // only run serial data is incoming
     {
-        display_len = Serial.readBytes(buffer, BUFFER_SIZE);
-    }
+        read_len = Serial.readBytes(buffer, BUFFER_SIZE);
 
-    if (display_len)
-    {
-        write(buffer, slice); 
-        slice = slice < display_len ? slice += 4 : 0;
+        // write(buffer, read_len, 0);
     }
+    
+    int now = millis();
+    if (now - start_time > 500)
+    {
+        start_time = now;
+
+        // FIXME tries to scroll when < 4 chars
+        // start = start < read_len ? start + 4 : 0; // display chunks of 4 like a slide show
+        start = start < read_len ? start + 1 : 0; // display chunks of 4, sliding to the left
+        write(buffer, read_len, start);
+        Serial.println(start);
+    }   
 
     sevseg.refreshDisplay();
 }
 
 // Write the buffer the the screen, right-justified.
 // Doesn't have to be 4 chars, but only the first 4 will be displayed
+//
+// `buf` is the buffer you are displaying from
+//
+//  `len` is the length of of `buf` that you want to read from.
+//
 // `start` is the index to start the display at.
-void write(char *buf, int start)
+void write(char *buf, int len, int start)
 {
     static char display_buffer[4];
     // TODO needs to ignore "." as a char, the display has a dedicated "."
-
-    int len = *(&buf + 1) - buf;
 
     int word_len = len > 4 ? 4 : len;
     // the amount of chars the word needs to be shifted to the right
