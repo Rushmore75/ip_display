@@ -42,7 +42,7 @@ void loop()
     {
         start_time = now;
 
-        // FIXME tries to scroll when < 4 chars
+        // FIXME tries to scroll when < 4 charsit
         // start = start < read_len ? start + 4 : 0; // display chunks of 4 like a slide show
         start = start < read_len ? start + 1 : 0; // display chunks of 4, sliding to the left
         write(buffer, read_len, start);
