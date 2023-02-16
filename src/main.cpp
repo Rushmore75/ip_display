@@ -1,6 +1,10 @@
 #include "SevSeg.h"
 
 SevSeg sevseg; //Instantiate a seven segment controller object
+const int BUFFER_SIZE = 32;
+char buffer[BUFFER_SIZE];
+char display_buffer[4];
+void write(char *buf, int len);
 
 void setup() {
   byte numDigits = 4;
@@ -23,34 +27,29 @@ void setup() {
   Serial.begin(9600);
 }
 
-const int BUFFER_SIZE = 32;
-char buffer[BUFFER_SIZE];
-
 void loop() {
 
   if (Serial.available()) // only run if a change is needed
   {
     int read_len = Serial.readBytes(buffer, BUFFER_SIZE);
-    
-    char display_buffer[4]; 
-
-    int word_len = read_len > 4 ? 4 : read_len;
-    // the amount of chars the word needs to be shifted to the right
-    int shift = 4 - word_len;
-
-    for (int i = 0; i < shift; i++)
-    {
-      display_buffer[i] = ' ';
-    }
-    for (int i = shift; i < 4; i++) 
-    {
-      display_buffer[i] = buffer[i-shift];  
-    }
-    
-    Serial.print(display_buffer); 
- 
-    sevseg.setChars(display_buffer);
+    // TODO put code here that breaks up long text
+    // into multiple 4 char sections to be displayed
+    write(buffer, read_len);
   }
 
   sevseg.refreshDisplay();
+}
+
+// Write the buffer the the screen, right-justified
+void write(char *buf, int len)
+{
+  int word_len = len > 4 ? 4 : len;
+  // the amount of chars the word needs to be shifted to the right
+  int shift = 4 - word_len;
+  // fill the unused space with space char
+  for (int i = 0; i < shift; i++) { display_buffer[i] = ' '; }
+  // fill the buffer with the text (right-justified)
+  for (int i = shift; i < 4; i++) { display_buffer[i] = buf[i-shift]; }
+
+  sevseg.setChars(display_buffer); 
 }
