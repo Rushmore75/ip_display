@@ -43,10 +43,20 @@ void loop()
         start_time = now;
 
         // FIXME tries to scroll when < 4 charsit
-        // start = start < read_len ? start + 4 : 0; // display chunks of 4 like a slide show
-        start = start < read_len ? start + 1 : 0; // display chunks of 4, sliding to the left
+        if (read_len <= 4)
+        {
+            start = 0;
+        }
+        else
+        {
+            // start = start < read_len ? start + 4 : 0; // display chunks of 4 like a slide show
+            start = start < read_len ? start + 1 : 0; // display scrolling text 
+        }
         write(buffer, read_len, start);
-        Serial.println(start);
+        Serial.print("Start at");
+        Serial.print(start);
+        Serial.print(" Read ");
+        Serial.println(read_len);
     }   
 
     sevseg.refreshDisplay();
